@@ -36,7 +36,7 @@ function App() {
     return localStorage.getItem('vocabai_api_key') || ''
   })
 
-  const [showApiKeyModal, setShowApiKeyModal] = useState(!apiKey)
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(true)
 
   const saveToStorage = useCallback((newSessions, newActiveId) => {
@@ -113,7 +113,7 @@ function App() {
         <ApiKeyModal
           apiKey={apiKey}
           onSave={handleSaveApiKey}
-          onClose={() => apiKey && setShowApiKeyModal(false)}
+          onClose={() => setShowApiKeyModal(false)}
         />
       )}
     </div>
