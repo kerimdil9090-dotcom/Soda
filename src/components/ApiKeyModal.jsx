@@ -15,7 +15,7 @@ function ApiKeyModal({ apiKey: initialKey, onSave, onClose }) {
     <div className="modal-overlay">
       <div className="modal">
         <div className="modal-header">
-          <h2>API Anahtari Ayarlari</h2>
+          <h2>Claude API Anahtari</h2>
           <button className="modal-close" onClick={onClose}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"/>
@@ -24,18 +24,18 @@ function ApiKeyModal({ apiKey: initialKey, onSave, onClose }) {
           </button>
         </div>
         <p className="modal-desc">
-          Metin olusturmak icin bir OpenAI API anahtari gereklidir.
-          Anahtariniz yalnizca tarayicinizda saklanir.
+          Metin olusturmak icin Anthropic (Claude) API anahtari gereklidir.
+          Anahtariniz yalnizca tarayicinizda saklanir ve dogrudan Anthropic sunucularina gonderilir.
         </p>
         <form onSubmit={handleSubmit}>
           <div className="input-group">
-            <label htmlFor="api-key">OpenAI API Anahtari</label>
+            <label htmlFor="api-key">Anthropic API Anahtari</label>
             <input
               id="api-key"
               type="password"
               value={key}
               onChange={(e) => setKey(e.target.value)}
-              placeholder="sk-..."
+              placeholder="sk-ant-..."
               autoFocus
             />
           </div>

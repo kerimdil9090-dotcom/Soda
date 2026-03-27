@@ -2,7 +2,8 @@
   background: var(--bg-white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
 }
 
 .text-display-header {
@@ -12,6 +13,7 @@
   padding: 14px 20px;
   border-bottom: 1px solid var(--border-light);
   background: var(--bg);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
 .text-badges {
@@ -74,12 +76,87 @@
   padding: 1px 4px;
   border-radius: 3px;
   font-weight: 500;
-  cursor: default;
+  cursor: pointer;
   transition: background 0.2s;
 }
 
 .highlighted-word:hover {
   background: #fde68a;
+}
+
+[data-theme="dark"] .highlighted-word:hover {
+  background: rgba(251, 191, 36, 0.3);
+}
+
+/* Tooltip */
+.word-tooltip {
+  position: fixed;
+  transform: translate(-50%, -100%);
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  box-shadow: var(--shadow-lg);
+  z-index: 300;
+  max-width: 320px;
+  min-width: 200px;
+  pointer-events: auto;
+}
+
+.word-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--border);
+}
+
+.tooltip-word {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tooltip-phonetic {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.tooltip-pos {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--primary);
+  background: var(--primary-light);
+  padding: 1px 8px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+}
+
+.tooltip-def {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.tooltip-no-def {
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.tooltip-example {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 6px 0 0;
+  line-height: 1.4;
 }
 
 .missing-words {
@@ -114,6 +191,7 @@
   padding: 12px 20px;
   border-top: 1px solid var(--border-light);
   background: var(--bg);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
 .legend-item {

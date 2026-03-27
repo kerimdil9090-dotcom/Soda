@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import Sidebar from './components/Sidebar'
 import MainContent from './components/MainContent'
 import ApiKeyModal from './components/ApiKeyModal'
@@ -37,7 +37,19 @@ function App() {
   })
 
   const [showApiKeyModal, setShowApiKeyModal] = useState(false)
+
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('vocabai_dark_mode')
+    if (saved !== null) return saved === 'true'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  })
+
   const [sidebarOpen, setSidebarOpen] = useState(true)
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light')
+    localStorage.setItem('vocabai_dark_mode', darkMode)
+  }, [darkMode])
 
   const saveToStorage = useCallback((newSessions, newActiveId) => {
     localStorage.setItem('vocabai_sessions', JSON.stringify(newSessions))
@@ -99,7 +111,10 @@ function App() {
         onDeleteSession={handleDeleteSession}
         isOpen={sidebarOpen}
         onToggle={() => setSidebarOpen(prev => !prev)}
+        darkMode={darkMode}
+        onToggleDarkMode={() => setDarkMode(prev => !prev)}
         onOpenApiKey={() => setShowApiKeyModal(true)}
+        hasApiKey={!!apiKey}
       />
       <MainContent
         session={activeSession}
@@ -108,6 +123,7 @@ function App() {
         apiKey={apiKey}
         sidebarOpen={sidebarOpen}
         onToggleSidebar={() => setSidebarOpen(prev => !prev)}
+        onOpenApiKey={() => setShowApiKeyModal(true)}
       />
       {showApiKeyModal && (
         <ApiKeyModal

@@ -1,14 +1,14 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import WordInput from './WordInput'
 import SettingsPanel from './SettingsPanel'
 import TextDisplay from './TextDisplay'
-import { generateText } from '../utils/api'
+import { generateText, fetchWordDefinitions } from '../utils/api'
 import './MainContent.css'
 
-function MainContent({ session, onUpdateSession, onNewSession, apiKey, sidebarOpen, onToggleSidebar }) {
+function MainContent({ session, onUpdateSession, onNewSession, apiKey, sidebarOpen, onToggleSidebar, onOpenApiKey }) {
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState('')
-  const abortRef = useRef(null)
+  const [definitions, setDefinitions] = useState({})
 
   if (!session) {
     return (
@@ -32,8 +32,8 @@ function MainContent({ session, onUpdateSession, onNewSession, apiKey, sidebarOp
             </svg>
           </div>
           <h2>VocabAI'ya Hos Geldiniz</h2>
-          <p>Yapay zeka destekli Ingilizce kelime ezberleme araci</p>
-          <p className="empty-hint">50 kelime girin, AI bu kelimeleri iceren anlamli bir metin olustursun</p>
+          <p>Claude AI destekli Ingilizce kelime ezberleme araci</p>
+          <p className="empty-hint">Kelimelerinizi girin, Claude AI bu kelimeleri iceren anlamli bir metin olustursun</p>
           <button className="start-btn" onClick={onNewSession}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"/>
@@ -59,7 +59,7 @@ function MainContent({ session, onUpdateSession, onNewSession, apiKey, sidebarOp
 
   const handleGenerate = async () => {
     if (!apiKey) {
-      setError('Lutfen once API anahtarinizi ayarlayin.')
+      setError('Lutfen once sol panelden API anahtarinizi ayarlayin.')
       return
     }
     if (session.words.length === 0) {
@@ -70,16 +70,17 @@ function MainContent({ session, onUpdateSession, onNewSession, apiKey, sidebarOp
     setIsGenerating(true)
     setError('')
 
-    const controller = new AbortController()
-    abortRef.current = controller
-
     try {
-      const text = await generateText({
-        words: session.words,
-        settings: session.settings,
-        apiKey,
-        signal: controller.signal,
-      })
+      const [text, defs] = await Promise.all([
+        generateText({
+          words: session.words,
+          settings: session.settings,
+          apiKey,
+        }),
+        fetchWordDefinitions(session.words),
+      ])
+
+      setDefinitions(prev => ({ ...prev, ...defs }))
 
       const newText = {
         id: Date.now().toString(),
@@ -94,12 +95,9 @@ function MainContent({ session, onUpdateSession, onNewSession, apiKey, sidebarOp
         activeTextIndex: updatedTexts.length - 1,
       })
     } catch (err) {
-      if (err.name !== 'AbortError') {
-        setError(err.message || 'Metin olusturulurken bir hata olustu.')
-      }
+      setError(err.message || 'Metin olusturulurken bir hata olustu.')
     } finally {
       setIsGenerating(false)
-      abortRef.current = null
     }
   }
 
@@ -128,6 +126,18 @@ function MainContent({ session, onUpdateSession, onNewSession, apiKey, sidebarOp
       )}
 
       <div className="content-wrapper">
+        {!apiKey && (
+          <div className="api-warning">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <span>Metin olusturmak icin Claude API anahtari gerekli.</span>
+            <button onClick={onOpenApiKey}>Anahtar Ekle</button>
+          </div>
+        )}
+
         <div className="input-section">
           <WordInput words={session.words} onChange={handleWordsChange} />
           <SettingsPanel settings={session.settings} onChange={handleSettingsChange} />
@@ -141,7 +151,7 @@ function MainContent({ session, onUpdateSession, onNewSession, apiKey, sidebarOp
               {isGenerating ? (
                 <>
                   <div className="spinner" />
-                  Olusturuluyor...
+                  Claude olusturuyor...
                 </>
               ) : (
                 <>
@@ -193,6 +203,7 @@ function MainContent({ session, onUpdateSession, onNewSession, apiKey, sidebarOp
                 text={activeText.content}
                 words={session.words}
                 settings={activeText.settings}
+                definitions={definitions}
               />
             )}
           </div>

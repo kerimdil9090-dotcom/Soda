@@ -1,3 +1,32 @@
+// Free Dictionary API for word definitions
+export async function fetchWordDefinitions(words) {
+  const definitions = {}
+
+  const promises = words.map(async (word) => {
+    try {
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`)
+      if (res.ok) {
+        const data = await res.json()
+        const entry = data[0]
+        const meaning = entry?.meanings?.[0]
+        definitions[word] = {
+          partOfSpeech: meaning?.partOfSpeech || '',
+          definition: meaning?.definitions?.[0]?.definition || '',
+          example: meaning?.definitions?.[0]?.example || '',
+          phonetic: entry?.phonetic || entry?.phonetics?.[0]?.text || '',
+        }
+      }
+    } catch {
+      // skip failed lookups
+    }
+  })
+
+  await Promise.all(promises)
+  return definitions
+}
+
+// --- Claude AI Text Generation ---
+
 const LENGTH_MAP = {
   'short': '150',
   'medium': '300',
@@ -48,26 +77,15 @@ REQUIREMENTS:
 
 Write the text now:`
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  // Call our proxy server which forwards to Claude API
+  const response = await fetch('/api/generate', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an expert English language content writer. You create engaging, natural texts that incorporate given vocabulary words seamlessly.'
-        },
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.8,
-      max_tokens: 2000,
+      apiKey,
+      prompt,
     }),
     signal,
   })
@@ -80,11 +98,11 @@ Write the text now:`
     if (response.status === 429) {
       throw new Error('API istek limiti asildi. Lutfen biraz bekleyin.')
     }
-    throw new Error(errorData.error?.message || `API hatasi: ${response.status}`)
+    throw new Error(errorData.error || `API hatasi: ${response.status}`)
   }
 
   const data = await response.json()
-  const content = data.choices?.[0]?.message?.content
+  const content = data.text
 
   if (!content) {
     throw new Error('API bos bir yanit dondurdu.')

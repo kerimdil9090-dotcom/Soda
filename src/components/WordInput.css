@@ -131,6 +131,10 @@
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
+.bulk-input textarea {
+  background: var(--bg);
+}
+
 .bulk-add-btn {
   margin-top: 8px;
   padding: 8px 16px;

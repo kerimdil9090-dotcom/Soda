@@ -1,13 +1,13 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import './TextDisplay.css'
 
-function TextDisplay({ text, words, settings }) {
-  const [showTranslation, setShowTranslation] = useState({})
+function TextDisplay({ text, words, settings, definitions = {} }) {
+  const [tooltip, setTooltip] = useState(null)
+  const tooltipTimeout = useRef(null)
 
   const highlightedText = useMemo(() => {
     if (!text || words.length === 0) return text
 
-    const wordSet = new Set(words.map(w => w.toLowerCase()))
     const pattern = words
       .map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
       .join('|')
@@ -17,19 +17,18 @@ function TextDisplay({ text, words, settings }) {
     let lastIndex = 0
     let match
 
-    const textStr = text
     regex.lastIndex = 0
 
-    while ((match = regex.exec(textStr)) !== null) {
+    while ((match = regex.exec(text)) !== null) {
       if (match.index > lastIndex) {
-        parts.push({ type: 'text', content: textStr.slice(lastIndex, match.index) })
+        parts.push({ type: 'text', content: text.slice(lastIndex, match.index) })
       }
       parts.push({ type: 'highlight', content: match[0], word: match[0].toLowerCase() })
       lastIndex = regex.lastIndex
     }
 
-    if (lastIndex < textStr.length) {
-      parts.push({ type: 'text', content: textStr.slice(lastIndex) })
+    if (lastIndex < text.length) {
+      parts.push({ type: 'text', content: text.slice(lastIndex) })
     }
 
     return parts
@@ -61,6 +60,25 @@ function TextDisplay({ text, words, settings }) {
     return words.filter(w => !foundWords.includes(w))
   }, [words, foundWords])
 
+  const handleWordHover = (e, word) => {
+    clearTimeout(tooltipTimeout.current)
+    const rect = e.target.getBoundingClientRect()
+    const def = definitions[word]
+    setTooltip({
+      word,
+      x: rect.left + rect.width / 2,
+      y: rect.top - 8,
+      definition: def?.definition || '',
+      partOfSpeech: def?.partOfSpeech || '',
+      phonetic: def?.phonetic || '',
+      example: def?.example || '',
+    })
+  }
+
+  const handleWordLeave = () => {
+    tooltipTimeout.current = setTimeout(() => setTooltip(null), 200)
+  }
+
   return (
     <div className="text-display">
       <div className="text-display-header">
@@ -82,7 +100,12 @@ function TextDisplay({ text, words, settings }) {
         {Array.isArray(highlightedText) ? (
           highlightedText.map((part, i) =>
             part.type === 'highlight' ? (
-              <span key={i} className="highlighted-word" title={part.word}>
+              <span
+                key={i}
+                className="highlighted-word"
+                onMouseEnter={(e) => handleWordHover(e, part.word)}
+                onMouseLeave={handleWordLeave}
+              >
                 {part.content}
               </span>
             ) : (
@@ -93,6 +116,30 @@ function TextDisplay({ text, words, settings }) {
           <p>{text}</p>
         )}
       </div>
+
+      {tooltip && (
+        <div
+          className="word-tooltip"
+          style={{
+            left: `${tooltip.x}px`,
+            top: `${tooltip.y}px`,
+          }}
+          onMouseEnter={() => clearTimeout(tooltipTimeout.current)}
+          onMouseLeave={handleWordLeave}
+        >
+          <div className="tooltip-word">
+            {tooltip.word}
+            {tooltip.phonetic && <span className="tooltip-phonetic">{tooltip.phonetic}</span>}
+          </div>
+          {tooltip.partOfSpeech && <span className="tooltip-pos">{tooltip.partOfSpeech}</span>}
+          {tooltip.definition ? (
+            <p className="tooltip-def">{tooltip.definition}</p>
+          ) : (
+            <p className="tooltip-def tooltip-no-def">Tanim bulunamadi</p>
+          )}
+          {tooltip.example && <p className="tooltip-example">"{tooltip.example}"</p>}
+        </div>
+      )}
 
       {missingWords.length > 0 && (
         <div className="missing-words">
@@ -108,7 +155,7 @@ function TextDisplay({ text, words, settings }) {
       <div className="word-legend">
         <div className="legend-item">
           <span className="legend-highlight"></span>
-          <span>Vurgulanan kelimeler sizin eklediginiz kelimelerdir</span>
+          <span>Vurgulanan kelimelerin uzerine gelin - tanim gorun</span>
         </div>
       </div>
     </div>

@@ -98,6 +98,38 @@
   background: var(--primary-hover);
 }
 
+.api-warning {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: var(--radius-md);
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--warning);
+}
+
+.api-warning span {
+  flex: 1;
+}
+
+.api-warning button {
+  padding: 5px 14px;
+  background: var(--warning);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.api-warning button:hover {
+  opacity: 0.9;
+}
+
 .input-section {
   margin-bottom: 32px;
 }
